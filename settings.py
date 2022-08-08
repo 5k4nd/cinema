@@ -11,3 +11,4 @@ OUT_USER = getpwuid(getuid()).pw_name  # you can overdrive ex. with "bat"
 OUT_GROUP = OUT_USER  # ex. "www-data"
 
 SOURCE_PATH = "cinemas.csv"
+MAIN_CITY = "Besançon"

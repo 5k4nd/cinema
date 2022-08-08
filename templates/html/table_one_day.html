@@ -1,14 +1,14 @@
 <li>
     <input type="radio" name="tabs" id="tab$DayNumber" $Checked />
-    <label for="tab$DayNumber" 
-           role="tab" 
-           aria-selected="$Selected" 
-           aria-controls="panel$DayNumber" 
+    <label for="tab$DayNumber"
+           role="tab"
+           aria-selected="$Selected"
+           aria-controls="panel$DayNumber"
            tabindex="0">$Day</label>
-    <div id="tab-content$DayNumber" 
-         class="tab-content" 
-         role="tabpanel" 
-         aria-labelledby="Séances du $Day" 
+    <div id="tab-content$DayNumber"
+         class="tab-content"
+         role="tabpanel"
+         aria-labelledby="Séances du $Day"
          aria-hidden="$Hidden">
         <div class="limiter">
           <div class="container-table100">
@@ -24,7 +24,7 @@
                   </tr>
                 </thead>
                 <tbody class="table-hover">
-                  $Value
+                  $DayContent
                 </tbody>
               </table>
             </div>

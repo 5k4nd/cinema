@@ -87,3 +87,6 @@ a {
 a:hover{
   color : #fff;
 }
+a.ico-link {
+  padding: 15px 0;
+}
