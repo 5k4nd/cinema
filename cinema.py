@@ -83,10 +83,14 @@ def fetch_theaters_shows() -> dict:
                 allocine_movie_url = f"/film/fichefilm_gen_cfilm={movie['movie']['internalId']}.html"
                 yt_url = f"https://www.youtube.com/results?search_query={quote_plus(f'trailer {movie_title} {release_date}')}"
                 tags = [tag["name"].split('/')[0].split('-')[0].strip() for tag in movie_meta["relatedTags"]]
+                director_name = ""
+                for person in movie_meta["credits"]:
+                    if person.get("position", {}).get("name") == "DIRECTOR":
+                        director_name = f"{person['person'].get('firstName', '')} {person['person'].get('lastName', '').upper()}"
 
                 one_week_shows[day_from_today] += [
                     {
-                        "film": movie_title + f"<br>({release_date})",
+                        "film": movie_title + f"<br>({release_date}, {director_name})",
                         "cinema": cinema_name,
                         "filmUrl": allocine_movie_url,
                         "ytUrl": yt_url,
