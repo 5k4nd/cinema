@@ -178,6 +178,7 @@ def normalize(city_name: str) -> str:
 
 
 def download_posters(shows: dict) -> dict:
+    print("Downloading missing posters...")
     pic_path = OUT_PATH / "pic"
     pic_path.mkdir(parents=True, exist_ok=True)
     for city_name, city_shows in shows.items():
@@ -186,7 +187,8 @@ def download_posters(shows: dict) -> dict:
                 url = show["posterUrl"]
                 file_ext = Path(url).suffix
                 url_hash = md5(url.encode()).hexdigest()
-                local_file_path = pic_path / f"{url_hash}{file_ext}"
+                filename = f"{url_hash}{file_ext}"
+                local_file_path = pic_path / filename
                 if not local_file_path.is_file():  # if the file does not exist already
                     res = requests.get(url)
                     if not (200 <= res.status_code < 300):
@@ -196,8 +198,11 @@ def download_posters(shows: dict) -> dict:
                         pic_bytes = res.content
                         with open(local_file_path, "wb") as f:
                             f.write(pic_bytes)
-                shows[city_name][day_idx][show_idx]["posterUrl"] = local_file_path  # change url from remote to local
 
+                # change url from remote to local
+                shows[city_name][day_idx][show_idx]["posterUrl"] = ".." / Path("pic") / filename
+
+    print("Done!")
     return shows
 
 
