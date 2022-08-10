@@ -3,6 +3,7 @@
 from csv import reader
 from datetime import date, datetime, timedelta
 from hashlib import md5
+from itertools import chain
 from os import chmod
 from pathlib import Path
 from shutil import chown, copyfile, copytree
@@ -11,7 +12,7 @@ from typing import Tuple
 from urllib.parse import quote_plus
 
 import requests
-from dateutil.parser import parse
+from dateutil.parser import parse as dateutil_parse
 from unidecode import unidecode
 
 from settings import MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, SOURCE_PATH, TEMPLATES
@@ -45,7 +46,7 @@ def load_theaters_config() -> dict:
     return raw_theaters
 
 
-def fetch_theaters_shows() -> dict:
+def fetch_shows() -> dict:
     """Fetch shows from Allociné for one week, from today."""
     shows = {}
     for city_name, city_theaters in theaters.items():
@@ -64,7 +65,7 @@ def fetch_theaters_shows() -> dict:
                     for release in movie_meta["releases"][::-1]:
                         # explore releases from oldest (last ones) to newest
                         if release.get("releaseDate"):
-                            release_date = parse(release["releaseDate"]["date"])
+                            release_date = dateutil_parse(release["releaseDate"]["date"])
                             current_year = date.today().year
                             # we only want month and day for current year movies
                             release_date = (
@@ -74,17 +75,14 @@ def fetch_theaters_shows() -> dict:
                             )
                             break
 
-                    showtimes = []
-                    for showtime in movie["showtimes"][
-                        "local"
-                        if movie["showtimes"]["local"]
-                        else "multiple"
-                        if movie["showtimes"]["multiple"]
-                        else "original"
-                    ]:
+                    showtimes = set()  # set prevents duplicates
+                    # shows are divided across dubbed, original, local, etc.,so we need to merge them before anything
+                    showtime_list = chain.from_iterable(movie["showtimes"].values())
+                    for showtime in showtime_list:
                         lang = showtime["tags"][0].replace("Localization.Language.", "")
                         lang = "VF" if lang == "French" else "VO"
-                        showtimes.append(f"{showtime['startsAt'][11:16]} ({lang})")
+                        show_date = dateutil_parse(showtime["startsAt"])
+                        showtimes.add(f"{show_date.hour}:{str(show_date.minute).zfill(2)} ({lang})")
 
                     movie_title = movie["movie"]["title"]
                     allocine_movie_url = f"/film/fichefilm_gen_cfilm={movie['movie']['internalId']}.html"
@@ -105,14 +103,14 @@ def fetch_theaters_shows() -> dict:
                             "film": movie_title + f"<br>({release_date})<br>{director_name}",
                             "cinema": cinema_name,
                             "allocineUrl": allocine_url + allocine_movie_url,
-                            "ytUrl": f"https://www.youtube.com/results?search_query=traile+{search_engines_query}",
+                            "ytUrl": f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
                             "scUrl": f"https://www.senscritique.com/search?query={search_engines_query}",
                             # "langs": ', '.join(movie_meta["languages"]),
                             "synopsis": movie_meta["synopsisFull"],
                             "tags": " / ".join(tags),
                             "allocineTheaterUrl": f"{allocine_url}/seance/salle_gen_csalle={c_code}.html",
                             "posterUrl": movie_meta["poster"]["url"],
-                            "seance": "<br>".join(showtimes) + f'<br><br>{movie_meta["runtime"]}',
+                            "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta["runtime"]}',
                         }
                     ]
 
@@ -226,7 +224,7 @@ def write_root_index_file():
 
 if __name__ == "__main__":
     theaters = load_theaters_config()
-    one_week_shows = fetch_theaters_shows()
+    one_week_shows = fetch_shows()
     one_week_shows = download_posters(one_week_shows)
 
     for city, current_city_one_week_shows in one_week_shows.items():
