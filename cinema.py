@@ -105,6 +105,7 @@ def fetch_shows() -> dict:
                             "allocineUrl": allocine_url + allocine_movie_url,
                             "ytUrl": f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
                             "scUrl": f"https://www.senscritique.com/search?query={search_engines_query}",
+                            "rottenTomatosUrl": f"https://www.rottentomatoes.com/search?search={search_engines_query}",
                             # "langs": ', '.join(movie_meta["languages"]),
                             "synopsis": movie_meta["synopsisFull"],
                             "tags": " / ".join(tags),
@@ -205,8 +206,8 @@ def download_posters(shows: dict) -> dict:
 
 
 def write_static_files_if_needed():
-    for ico_filename in ("allocine.ico", "sc.ico", "yt.ico"):
-        ico_path = Path("pic") / ico_filename
+    for ico_filename in ("allocine", "sc", "rottent", "yt"):
+        ico_path = Path("pic") / (ico_filename + ".ico")
         if not (OUT_PATH / ico_path).is_file():
             copyfile((TEMPLATES / ico_path), (OUT_PATH / ico_path))
 
