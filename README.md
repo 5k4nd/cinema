@@ -1,4 +1,4 @@
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![GitHub last commit](https://img.shields.io/github/last-commit/baptabl/cinema?style=flat-square)](https://github.com/baptabl/cinema/commits)  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Fetch theaters shows from http://www.allocine.fr in order to put them on a lightweight web page.
 
