@@ -7,6 +7,7 @@ Credits for the idea and initial code goes to my friend JC. And design credits g
 This code is licensed under GNU AGPL 3.0: **a modified version used to provide a service, commercial or not, must distribute its complete source code.**
 Illegal uses will be prosecuted under French law.
 
+
 ### Quickstart
 Clone this repo then run:
 ```sh
@@ -14,6 +15,28 @@ python3 cinema.py
 ```
 
 Your freshly generated `index.html` pages will be located in `html/`.
+
+
+### (optional) systemd service
+Move:
+- `templates/systemd/cinema.unit`   # adapt the script path to your own location
+- `templates/systemd/cinema.timer`  # cron to run the service everyday
+
+into a systemd subdir of your choice, e.g.:
+- `/etc/systemd/system/`
+
+Then enable and optionally start the unit (as you would do for any systemd unit):
+```sh
+systemctl enable cinema.timer
+# restart your system or run the following:
+systemctl start cinema.timer
+```
+
+You should see your timer here:
+```sh
+systemctl list-timers
+```
+
 
 
 ### Settings

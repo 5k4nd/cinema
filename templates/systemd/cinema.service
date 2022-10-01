@@ -1,0 +1,6 @@
+[Unit]
+Description=Mise à jour des programmes de cinéma
+
+[Service]
+Type=oneshot
+ExecStart=/opt/cinema.py
