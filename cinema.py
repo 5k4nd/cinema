@@ -96,6 +96,9 @@ def fetch_shows() -> dict:
                             # firstname = f"{firstname[0]}." if firstname else ''
                             director_name = person["person"].get("lastName", "")
 
+                    poster_metas = movie_meta.get("poster")
+                    poster_url = poster_metas.get("url", "") if poster_metas else ""
+
                     if not shows.get(city_name):
                         shows[city_name] = [[] for _ in range(7)]
                     shows[city_name][day_from_today] += [
@@ -110,7 +113,7 @@ def fetch_shows() -> dict:
                             "synopsis": movie_meta["synopsisFull"],
                             "tags": " / ".join(tags),
                             "allocineTheaterUrl": f"{allocine_url}/seance/salle_gen_csalle={c_code}.html",
-                            "posterUrl": movie_meta["poster"]["url"],
+                            "posterUrl": poster_url,
                             "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta["runtime"]}',
                         }
                     ]
@@ -177,13 +180,20 @@ def normalize(city_name: str) -> str:
 
 
 def download_posters(shows: dict) -> dict:
+    """
+    Download posters images into 'pic' path (set up in settings).
+    Note that some movies (too old, foreign countries) do not have posters.
+    """
     print("Downloading missing posters...")
     pic_path = OUT_PATH / "pic"
     pic_path.mkdir(parents=True, exist_ok=True)
     for city_name, city_shows in shows.items():
         for day_idx, day in city_shows.items():
             for show_idx, show in enumerate(day):
-                url = show["posterUrl"]
+                url: str = show["posterUrl"]
+                if not url:
+                    # some movies (too old, foreign countries) do not have posters
+                    continue
                 file_ext = Path(url).suffix
                 url_hash = md5(url.encode()).hexdigest()
                 filename = f"{url_hash}{file_ext}"
