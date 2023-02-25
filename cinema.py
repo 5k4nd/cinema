@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import subprocess
 from csv import reader
 from datetime import date, datetime, timedelta
 from hashlib import md5
@@ -13,9 +13,8 @@ from urllib.parse import quote_plus
 
 import requests
 from dateutil.parser import parse as dateutil_parse
-from unidecode import unidecode
 
-from settings import MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, SOURCE_PATH, TEMPLATES
+from settings import MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, SOURCE_PATH, TEMPLATES, COMPRESS_PIC
 
 
 allocine_url = "http://www.allocine.fr"
@@ -176,7 +175,7 @@ def build_tab_other_cities(theaters: dict) -> str:
 
 
 def normalize(city_name: str) -> str:
-    return unidecode(city_name).lower()
+    return city_name.lower()
 
 
 def download_posters(shows: dict) -> dict:
@@ -207,6 +206,10 @@ def download_posters(shows: dict) -> dict:
                         pic_bytes = res.content
                         with open(local_file_path, "wb") as f:
                             f.write(pic_bytes)
+
+                        if COMPRESS_PIC:
+                            # resize images to vignettes
+                            subprocess.call(['convert', local_file_path, '-resize', '120x160', local_file_path])
 
                 # change url from remote to local
                 shows[city_name][day_idx][show_idx]["posterUrl"] = ".." / Path("pic") / filename

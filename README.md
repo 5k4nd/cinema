@@ -9,12 +9,19 @@ Illegal uses will be prosecuted under French law.
 
 
 ### Quickstart
-Clone this repo then run:
+Install `imagemagick` (for compressing images, disable this with `COMPRESS_PIC=False` in settings), e.g. on Debian:
+```sh
+sudo apt install imagemagick
+```
+
+then clone this repo and run the script with:
 ```sh
 python3 cinema.py
 ```
 
 Your freshly generated `index.html` pages will be located in `html/`.
+
+That's it!
 
 
 ### (optional) systemd service

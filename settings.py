@@ -12,3 +12,4 @@ OUT_GROUP = OUT_USER  # ex. "www-data"
 
 SOURCE_PATH = "cinemas.csv"
 MAIN_CITY = "Besançon"
+COMPRESS_PIC = True
