@@ -78,7 +78,12 @@ def fetch_shows() -> dict:
                     # shows are divided across dubbed, original, local, etc.,so we need to merge them before anything
                     showtime_list = chain.from_iterable(movie["showtimes"].values())
                     for showtime in showtime_list:
-                        lang = showtime["tags"][0].replace("Localization.Language.", "")
+                        lang_tags = showtime["tags"]
+                        if lang_tags and isinstance(lang_tags, list) and len(lang_tags) > 0:
+                            lang = lang_tags[0].replace("Localization.Language.", "")
+                        else:
+                            # unknown lang tags format or content, let's assert the show is VO
+                            lang = None
                         lang = "VF" if lang == "French" else "VO"
                         show_date = dateutil_parse(showtime["startsAt"])
                         showtimes.add(f"{show_date.hour}:{str(show_date.minute).zfill(2)} ({lang})")
