@@ -8,7 +8,7 @@ locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
 TEMPLATES = Path("templates")
 OUT_PATH = Path("html")
 OUT_USER = getpwuid(getuid()).pw_name  # you can overdrive ex. with "bat"
-OUT_GROUP = OUT_USER  # ex. "www-data"
+OUT_GROUP = OUT_USER  # ex. "www-data" or "staff" on local OSX dev
 
 SOURCE_PATH = "cinemas.csv"
 MAIN_CITY = "Besançon"

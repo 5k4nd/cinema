@@ -209,7 +209,8 @@ def download_posters(shows: dict) -> dict:
 
                         if COMPRESS_PIC:
                             # resize images to vignettes
-                            subprocess.call(['convert', local_file_path, '-resize', '120x160', local_file_path])
+                            if subprocess.call(['convert', local_file_path, '-resize', '120x160', local_file_path]):
+                                print(f"Exception during resizing of {local_file_path}")
 
                 # change url from remote to local
                 shows[city_name][day_idx][show_idx]["posterUrl"] = ".." / Path("pic") / filename
