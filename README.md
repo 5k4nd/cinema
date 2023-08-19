@@ -45,12 +45,24 @@ systemctl list-timers
 ```
 
 
-
 ### Settings
 Edit settings in `settings.py`.
 
 Edit your theaters preference list in `theaters.csv`. Get theaters codes from the allocine URL,
 ex. http://allocine.fr/seance/salle_gen_csalle=C0076.html where `C0076` is the code.
+
+
+### Translation
+By default, everything is generated as french. You can change this by changing "fr_FR.UTF-8" to your locale in the settings.
+Before doing so, you need to ensure your locale is available in your current Linux system:
+```sh
+locale -a
+```
+
+If not, uncomment the desired locale from `/etc/locale.gen` (if multiple entries, use the UTF-8 one) then run:
+```sh
+sudo locale-gen
+```
 
 
 ### Contributing
