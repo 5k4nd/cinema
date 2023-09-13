@@ -60,6 +60,10 @@ def fetch_shows() -> dict:
 
                 for movie in res_json["results"]:
                     movie_meta = movie["movie"]
+                    if not movie_meta:
+                        # show times not linked to any movie... what is that!? skipping.
+                        continue
+
                     release_date = ""
                     for release in movie_meta["releases"][::-1]:
                         # explore releases from oldest (last ones) to newest
