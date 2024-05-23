@@ -118,11 +118,11 @@ def fetch_shows() -> dict:
                             "scUrl": f"https://www.senscritique.com/search?query={search_engines_query}",
                             "rottenTomatosUrl": f"https://www.rottentomatoes.com/search?search={search_engines_query}",
                             # "langs": ', '.join(movie_meta["languages"]),
-                            "synopsis": movie_meta["synopsisFull"],
+                            "synopsis": movie_meta.get("synopsisFull") or "Synopsis indisponible",
                             "tags": " / ".join(tags),
                             "allocineTheaterUrl": f"{allocine_url}/seance/salle_gen_csalle={c_code}.html",
                             "posterUrl": poster_url,
-                            "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta["runtime"]}',
+                            "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta.get("runtime") or "??"}',
                         }
                     ]
 
