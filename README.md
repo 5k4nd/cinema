@@ -25,6 +25,8 @@ That's it!
 
 
 ### (optional) systemd service
+Do not forget to use absolute paths in settings.py if using a systemd service.
+
 Move:
 - `templates/systemd/cinema.unit`   # adapt the script path to your own location
 - `templates/systemd/cinema.timer`  # cron to run the service everyday
@@ -68,7 +70,7 @@ sudo locale-gen
 ### Contributing
 Contributions are welcome! Feel free to open [issues](https://github.com/baptabl/cinema/issues) or [pull requests](https://github.com/baptabl/cinema/pulls).
 
-Development on the latest version of Python is preferred. As of this writing it's 3.10.
+Development on the latest version of Python is preferred. As of this writing it's 3.11.
 
 Install pre-commit hooks:
 ```sh
