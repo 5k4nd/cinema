@@ -9,17 +9,20 @@ from urllib.parse import quote_plus
 import requests
 from dateutil.parser import parse as dateutil_parse
 
-from settings import COMPRESS_PIC, OUT_PATH, SOURCE_PATH
+from settings import COMPRESS_PIC, OUT_PATH, THEATERS_SOURCE_FILE
 
 
 SERVICE_URL = "http://www.allocine.fr"
 
 
 def load_theaters_config() -> dict:
-    with open(SOURCE_PATH) as f:
+    with open(THEATERS_SOURCE_FILE) as f:
         cvs_reader = reader(f, delimiter=";")
         raw_theaters = {}
-        for row, (t_name, t_code, t_city) in enumerate(cvs_reader):
+        for row, (t_name, t_city, t_source_type, t_code) in enumerate(cvs_reader):
+            if t_source_type != "allocine":
+                # FIXME
+                continue
             if row == 0:
                 # skip header
                 continue
