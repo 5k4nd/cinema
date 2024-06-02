@@ -5,7 +5,7 @@ from shutil import chown, copyfile, copytree
 from string import Template
 from typing import Tuple
 
-from settings import HTML_TEMPLATES_PATH, MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, TEMPLATES
+from cinema.settings import HTML_TEMPLATES_PATH, MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, TEMPLATES
 
 
 def _normalize(city_name: str) -> str:

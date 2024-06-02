@@ -53,7 +53,7 @@ def _init_web_browser():
     firefox_options.set_preference(
         "general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/126.0"
     )
-    geckodriver_path = "/Users/bat/code/perso/baptabl.fr/cinema/geckodriver"
+    geckodriver_path = "/cinema/geckodriver"
     service = Service(geckodriver_path)
     driver = webdriver.Firefox(service=service, options=firefox_options)
 

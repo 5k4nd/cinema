@@ -3,26 +3,23 @@ from datetime import date, datetime
 from hashlib import md5
 from itertools import chain
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 from urllib.parse import quote_plus
 
 import requests
 from dateutil.parser import parse as dateutil_parse
 from requests import JSONDecodeError
 
-from exceptions import RemoteResourceException
-from settings import COMPRESS_PIC, OUT_PATH
-
-
-if TYPE_CHECKING:
-    from cinema import Cinema
+from cinema.exceptions import RemoteResourceException
+from cinema.main import Cinema
+from cinema.settings import COMPRESS_PIC, OUT_PATH
 
 
 SERVICE_URL = "http://www.allocine.fr"
 SERVICE_TYPE = "allocine"
 
 
-def fetch_shows(cinemas: Dict[str, List["Cinema"]]) -> dict:
+def fetch_shows(cinemas: Dict[str, List[Cinema]]) -> dict:
     """Fetch shows from Allociné for one week, from today."""
     shows = {}
     for city_name, city_cinemas in cinemas.items():

@@ -16,7 +16,7 @@ sudo apt install imagemagick
 
 then clone this repo and run the script with:
 ```sh
-python3 cinema.py
+python3 main.py
 ```
 
 Your freshly generated `index.html` pages will be located in `html/`.

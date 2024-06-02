@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from _csv import reader
-
 from settings import THEATERS_SOURCE_FILE
-from sources import allocine
 from utils.output_generator import generate_html_files
+
+from cinema.cinemas_sources import allocine
 
 
 @dataclass

@@ -6,8 +6,8 @@ from pwd import getpwuid
 
 locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
 
-PROJECT_PATH = Path(".")  # use absolute path if using systemd service
-OUT_PATH = Path("html")  # use absolute path if using systemd service
+PROJECT_PATH = Path("cinema")  # use absolute path if using systemd service
+OUT_PATH = PROJECT_PATH / "html_out"
 OUT_USER = getpwuid(getuid()).pw_name  # you can overdrive ex. with "foo"
 OUT_GROUP = OUT_USER  # ex. "www-data" or "staff" on local OSX dev
 
