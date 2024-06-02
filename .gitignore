@@ -1,4 +1,5 @@
 .venv
+venv/
 .coverage
 .coverage.*
 _build
@@ -22,8 +23,8 @@ src/_black_version.py
 .dmypy.json
 *.swp
 .hypothesis/
-venv/
 .ipynb_checkpoints/
 
 cinema/html_out/
 cinema/geckodriver
+

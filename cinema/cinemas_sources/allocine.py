@@ -3,7 +3,7 @@ from datetime import date, datetime
 from hashlib import md5
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING, Optional
 from urllib.parse import quote_plus
 
 import requests
@@ -11,16 +11,24 @@ from dateutil.parser import parse as dateutil_parse
 from requests import JSONDecodeError
 
 from cinema.exceptions import RemoteResourceException
-from cinema.main import Cinema
+from cinema.models import FilmShow
 from cinema.settings import COMPRESS_PIC, OUT_PATH
 
+if TYPE_CHECKING:
+    from cinema.main import Cinema
 
 SERVICE_URL = "http://www.allocine.fr"
 SERVICE_TYPE = "allocine"
 
 
-def fetch_shows(cinemas: Dict[str, List[Cinema]]) -> dict:
-    """Fetch shows from Allociné for one week, from today."""
+def fetch_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[List[FilmShow]]]:
+    """
+    Fetch shows from Allociné for one week, from today.
+
+    Returns a dict where keys are cities names,
+    and values are a list of 7 days,
+    where each day is a list of FilmShow objects.
+    """
     shows = {}
     for city_name, city_cinemas in cinemas.items():
         for cinema in city_cinemas:
@@ -88,69 +96,65 @@ def fetch_shows(cinemas: Dict[str, List[Cinema]]) -> dict:
 
                     if not shows.get(city_name):
                         shows[city_name] = [[] for _ in range(7)]
-                    shows[city_name][day_from_today] += [
-                        {
-                            "film": movie_title + f"<br>({release_date})<br>{director_name}",
-                            "cinema": cinema.name,
-                            "allocineUrl": SERVICE_URL + allocine_movie_url,
-                            "ytUrl": f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
-                            "scUrl": f"https://www.senscritique.com/search?query={search_engines_query}",
-                            "rottenTomatosUrl": f"https://www.rottentomatoes.com/search?search={search_engines_query}",
-                            # "langs": ', '.join(movie_meta["languages"]),
-                            "synopsis": movie_meta.get("synopsisFull") or "Synopsis indisponible",
-                            "tags": " / ".join(tags),
-                            "allocineTheaterUrl": f"{SERVICE_URL}/seance/salle_gen_csalle={cinema.code}.html",
-                            "posterUrl": poster_url,
-                            "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta.get("runtime") or "??"}',
-                        }
-                    ]
+                    film_show = FilmShow(
+                                label= movie_title + f"<br>({release_date})<br>{director_name}",
+                                cinema= cinema.name,
+                                allocine_url= SERVICE_URL + allocine_movie_url,
+                                yt_url= f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
+                                sc_url= f"https://www.senscritique.com/search?query={search_engines_query}",
+                                rotten_tomatos_url= f"https://www.rottentomatoes.com/search?search={search_engines_query}",
+                                # langs=', '.join(movie_meta["languages"]),
+                                synopsis= movie_meta.get("synopsisFull") or "Synopsis indisponible",
+                                tags= " / ".join(tags),
+                                url=f"{SERVICE_URL}/seance/salle_gen_csalle={cinema.code}.html",
+                                poster_url= poster_url,
+                                seances= "<br>".join(
+                                    sorted(showtimes)) + f'<br><br>{movie_meta.get("runtime") or "??"}',
+                        )
+                    film_show.poster_url = download_poster(film_show)
+                    shows[city_name][day_from_today].append(
+                        film_show
+                    )
 
             print("... done!")
 
         # remove days with no shows for the current city
         if shows.get(city_name):
-            shows[city_name] = {idx: day_shows for idx, day_shows in enumerate(shows[city_name]) if day_shows}
+            shows[city_name] = [day_shows or [] for day_shows in shows[city_name]]
 
     return shows
 
 
-def download_posters(shows: dict) -> dict:
+def download_poster(film_show: FilmShow) -> Optional[str]:
     """
-    Download posters images into 'pic' path (set up in settings).
-    Note that some movies (too old, foreign countries) do not have posters.
+    Download poster and returns relative path to it.
+    Note: some films (too old, foreign countries) do not have posters.
     """
-    print("Downloading missing posters...")
-    pic_path = OUT_PATH / "pic"
-    pic_path.mkdir(parents=True, exist_ok=True)
-    for city_name, city_shows in shows.items():
-        for day_idx, day in city_shows.items():
-            for show_idx, show in enumerate(day):
-                url: str = show["posterUrl"]
-                if not url:
-                    # some movies (too old, foreign countries) do not have posters
-                    continue
-                file_ext = Path(url).suffix
-                url_hash = md5(url.encode()).hexdigest()
-                filename = f"{url_hash}{file_ext}"
-                local_file_path = pic_path / filename
-                if not local_file_path.is_file():  # if the file does not exist already
-                    res = requests.get(url)
-                    if not (200 <= res.status_code < 300):
-                        print(f"Exception downloading {url}.")
-                        continue
-                    else:
-                        pic_bytes = res.content
-                        with open(local_file_path, "wb") as f:
-                            f.write(pic_bytes)
+    url = film_show.poster_url
+    if not url:
+        # some movies (too old, foreign countries) do not have posters
+        return None
+    pic_directory = OUT_PATH / "pic"
+    pic_directory.mkdir(parents=True, exist_ok=True)
 
-                        # resize images to vignettes
-                        if COMPRESS_PIC and subprocess.call(
-                            ["convert", local_file_path, "-resize", "120x160", local_file_path]
-                        ):
-                            print(f"Exception during resizing of {local_file_path}")
+    file_extension = Path(url).suffix
+    url_hash = md5(url.encode()).hexdigest()
+    filename = f"{url_hash}{file_extension}"
+    local_file_path = pic_directory / filename
+    if not local_file_path.is_file():  # if the file does not exist already
+        res = requests.get(url)
+        if not (200 <= res.status_code < 300):
+            print(f"Exception downloading {url}.")
+        else:
+            pic_bytes = res.content
+            with open(local_file_path, "wb") as f:
+                f.write(pic_bytes)
 
-                # change url from remote to local
-                shows[city_name][day_idx][show_idx]["posterUrl"] = ".." / Path("pic") / filename
+            # resize images to vignettes
+            if COMPRESS_PIC and subprocess.call(
+                    ["convert", local_file_path, "-resize", "120x160", local_file_path]
+            ):
+                print(f"Exception during resizing of {local_file_path}")
 
-    print("Done!")
-    return shows
+    local_path = f"../pic/{filename}"
+    return local_path
