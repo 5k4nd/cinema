@@ -58,13 +58,15 @@ def _write_html_files_for_city(city: str, current_city_one_week_shows: dict, tab
         html_file.write(index_template.substitute(TableContent=table_html, TabOtherCities=tab_other_cities))
 
 
-def _build_tab_other_cities(theaters: dict) -> str:
+def _build_tab_other_cities(cinemas: dict) -> str:
     with open(HTML_TEMPLATES_PATH / "row_one_city.html") as template_file:
         city_template = Template(template_file.read())
     tab = ""
-    for city_name, city_theaters in theaters.items():
+    for city_name, city_cinemas in cinemas.items():
         tab += city_template.substitute(
-            NormalizedCity=_normalize(city_name), City=city_name, Theaters=", ".join(city_theaters.values())
+            NormalizedCity=_normalize(city_name),
+            City=city_name,
+            Cinemas=", ".join(cinema.name for cinema in city_cinemas),
         )
     return tab
 
@@ -87,9 +89,9 @@ def _write_root_index_file():
         html_file.write(root_index_template.substitute(mainCity=_normalize(MAIN_CITY)))
 
 
-def generate_html_files(theaters: dict, one_week_shows: dict):
+def generate_html_files(cinemas: dict, one_week_shows: dict):
     for city, current_city_one_week_shows in one_week_shows.items():
-        tab_other_cities = _build_tab_other_cities(theaters)
+        tab_other_cities = _build_tab_other_cities(cinemas)
         _write_html_files_for_city(city, current_city_one_week_shows, tab_other_cities)
 
     _write_root_index_file()

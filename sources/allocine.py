@@ -1,52 +1,46 @@
 import subprocess
-from csv import reader
 from datetime import date, datetime
 from hashlib import md5
 from itertools import chain
 from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List
 from urllib.parse import quote_plus
 
 import requests
 from dateutil.parser import parse as dateutil_parse
+from requests import JSONDecodeError
 
-from settings import COMPRESS_PIC, OUT_PATH, THEATERS_SOURCE_FILE
+from exceptions import RemoteResourceException
+from settings import COMPRESS_PIC, OUT_PATH
+
+
+if TYPE_CHECKING:
+    from cinema import Cinema
 
 
 SERVICE_URL = "http://www.allocine.fr"
+SERVICE_TYPE = "allocine"
 
 
-def load_theaters_config() -> dict:
-    with open(THEATERS_SOURCE_FILE) as f:
-        cvs_reader = reader(f, delimiter=";")
-        raw_theaters = {}
-        for row, (t_name, t_city, t_source_type, t_code) in enumerate(cvs_reader):
-            if t_source_type != "allocine":
-                # FIXME
-                continue
-            if row == 0:
-                # skip header
-                continue
-            else:
-                if not raw_theaters.get(t_city):
-                    raw_theaters[t_city] = {}
-                raw_theaters[t_city][t_code] = t_name
-    return raw_theaters
-
-
-def fetch_shows(theaters: dict) -> dict:
+def fetch_shows(cinemas: Dict[str, List["Cinema"]]) -> dict:
     """Fetch shows from Allociné for one week, from today."""
     shows = {}
-    for city_name, city_theaters in theaters.items():
-        for c_code, cinema_name in city_theaters.items():
+    for city_name, city_cinemas in cinemas.items():
+        for cinema in city_cinemas:
+            if cinema.type != SERVICE_TYPE:
+                continue
             for day_from_today in range(0, 7):
-                print(f"Fetching {cinema_name} shows day today+{day_from_today}...")
-                res = requests.get(f"{SERVICE_URL}/_/showtimes/theater-{c_code}/d-{day_from_today}/")
+                print(f"Fetching {cinema.name} shows day today+{day_from_today}...")
+                resource = f"{SERVICE_URL}/_/showtimes/theater-{cinema.code}/d-{day_from_today}/"
+                res = requests.get(resource)
                 if res.status_code != 200:
-                    print(res.content.decode())
+                    try:
+                        res_json = res.json()
+                    except JSONDecodeError:
+                        raise RemoteResourceException(resource, "invalid JSON response")
+                    raise RemoteResourceException(resource, res_json)
 
-                res_json = res.json()
-
-                for movie in res_json["results"]:
+                for movie in res.json()["results"]:
                     movie_meta = movie["movie"]
                     if not movie_meta:
                         # show times not linked to any movie... what is that!? skipping.
@@ -100,7 +94,7 @@ def fetch_shows(theaters: dict) -> dict:
                     shows[city_name][day_from_today] += [
                         {
                             "film": movie_title + f"<br>({release_date})<br>{director_name}",
-                            "cinema": cinema_name,
+                            "cinema": cinema.name,
                             "allocineUrl": SERVICE_URL + allocine_movie_url,
                             "ytUrl": f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
                             "scUrl": f"https://www.senscritique.com/search?query={search_engines_query}",
@@ -108,7 +102,7 @@ def fetch_shows(theaters: dict) -> dict:
                             # "langs": ', '.join(movie_meta["languages"]),
                             "synopsis": movie_meta.get("synopsisFull") or "Synopsis indisponible",
                             "tags": " / ".join(tags),
-                            "allocineTheaterUrl": f"{SERVICE_URL}/seance/salle_gen_csalle={c_code}.html",
+                            "allocineTheaterUrl": f"{SERVICE_URL}/seance/salle_gen_csalle={cinema.code}.html",
                             "posterUrl": poster_url,
                             "seance": "<br>".join(sorted(showtimes)) + f'<br><br>{movie_meta.get("runtime") or "??"}',
                         }
