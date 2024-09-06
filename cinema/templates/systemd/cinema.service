@@ -3,4 +3,6 @@ Description=Mise à jour des programmes de cinéma
 
 [Service]
 Type=oneshot
-ExecStart=/opt/cinema.py
+ExecStart=/home/bat/.pyenv/versions/cinema/bin/python /home/bat/code/cinema/cinema/main.py
+Environment="PROJECT_PATH=/home/bat/code/cinema/cinema"
+Environment="OUT_PATH=/home/bat/public_html/cinema"
