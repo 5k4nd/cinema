@@ -21,7 +21,7 @@ SERVICE_URL = "http://www.allocine.fr"
 SERVICE_TYPE = "allocine"
 
 
-def fetch_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[List[FilmShow]]]:
+def fetch_next_week_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[List[FilmShow]]]:
     """
     Fetch shows from Allociné for one week, from today.
 
@@ -66,7 +66,7 @@ def fetch_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[List[FilmS
                             break
 
                     showtimes = set()  # set prevents duplicates
-                    # shows are divided across dubbed, original, local, etc.,so we need to merge them before anything
+                    # shows are divided across dubbed, original, local, etc., so we need to merge them before anything
                     showtime_list = chain.from_iterable(movie["showtimes"].values())
                     for showtime in showtime_list:
                         lang_tags = showtime["tags"]

@@ -3,9 +3,12 @@ This module is a web scrapper for the Petit Kursaal cinema in Besançon.
 """
 
 import time
+from datetime import datetime
+from typing import List
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common import NoSuchDriverException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -14,6 +17,9 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from unidecode import unidecode
 
+from cinema.exceptions import GeckoDriverNotFound
+from cinema.models import FilmShow
+from cinema.settings import PROJECT_PATH
 
 SERVICE_URL = "https://les2scenes.fr/cinema"
 
@@ -53,9 +59,12 @@ def _init_web_browser():
     firefox_options.set_preference(
         "general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/126.0"
     )
-    geckodriver_path = "/cinema/geckodriver"
+    geckodriver_path = PROJECT_PATH / "geckodriver"
     service = Service(geckodriver_path)
-    driver = webdriver.Firefox(service=service, options=firefox_options)
+    try:
+        driver = webdriver.Firefox(service=service, options=firefox_options)
+    except NoSuchDriverException:
+        raise GeckoDriverNotFound()
 
     driver.get(SERVICE_URL)
     wait = WebDriverWait(driver, 1)
@@ -165,19 +174,32 @@ def _load_next_month(driver):
     return soup
 
 
-def get_shows():
+def fetch_next_months_shows(driver, soup)-> dict:
     """
-    Get the shows from the Petit Kursaal cinema in Besançon.
+    Get film shows from Cinemas Besançon.
     """
-    driver, soup = _init_web_browser()
     current_month = _get_calendar_header_element(soup, "jsCalendar-title-name")
     movies_result = _fetch_movies_from_the_current_month(driver, soup, current_month)
 
     soup = _load_next_month(driver)
 
     movies_result |= _fetch_movies_from_the_current_month(driver, soup, _get_next_month(current_month))
-    print(movies_result)
+    return movies_result
 
-    # todo: fetch info for each movie from its URL, then build the final dict...
 
+def refine_shows_to_next_week_only(movies_result: dict) -> List[List[FilmShow]]:
+    # only keep next week shows
+    current_month_fr = datetime.now().strftime('%B')
+
+    # for each show, scrap details
+
+    pass
+
+
+def fetch_next_week_shows() -> List[List[FilmShow]]:
+    driver, soup = _init_web_browser()
+    # next_months_shows = fetch_next_months_shows(driver, soup)
+    next_months_shows = {"juin": {"4": [["18h15 The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"], ["20h30 No Country for Old Men", "https://les2scenes.fr/cinema/no-country-old-men"]], "5": [["16h The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"], ["18h15 La M\u00e8re de tous les mensonges", "https://les2scenes.fr/cinema/la-mere-de-tous-les-mensonges"], ["20h30 Le Bleu du caftan", "https://les2scenes.fr/cinema/le-bleu-du-caftan"]], "6": [["16h La M\u00e8re de tous les mensonges", "https://les2scenes.fr/cinema/la-mere-de-tous-les-mensonges"], ["18h15 No Country for Old Men", "https://les2scenes.fr/cinema/no-country-old-men"], ["20h30 The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"]], "7": [["16h Le Bleu du caftan", "https://les2scenes.fr/cinema/le-bleu-du-caftan"], ["18h15 La M\u00e8re de tous les mensonges", "https://les2scenes.fr/cinema/la-mere-de-tous-les-mensonges"], ["20h30 A Serious Man", "https://les2scenes.fr/cinema/serious-man"]], "8": [["16h Menus-Plaisirs Les Troisgros", "https://les2scenes.fr/cinema/menus-plaisirs-les-troisgros"], ["20h Caf\u00e9-cin\u00e9 | Juin 2024", "https://les2scenes.fr/cinema/cafe-cine-juin-2024"]], "10": [["18h15 True Grit", "https://les2scenes.fr/cinema/true-grit"], ["20h30 Animalia", "https://les2scenes.fr/cinema/animalia"]], "11": [["16h Animalia", "https://les2scenes.fr/cinema/animalia"], ["18h15 A Serious Man", "https://les2scenes.fr/cinema/serious-man"], ["20h30 Inside Llewyn Davis", "https://les2scenes.fr/cinema/inside-llewyn-davis"]], "13": [["18h15 The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"], ["20h30 No Country for Old Men", "https://les2scenes.fr/cinema/no-country-old-men"]], "14": [["16h The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"], ["18h15 La M\u00e8re de tous les mensonges", "https://les2scenes.fr/cinema/la-mere-de-tous-les-mensonges"], ["20h30 Le Bleu du caftan", "https://les2scenes.fr/cinema/le-bleu-du-caftan"]], "15": [["16h The Big Lebowski", "https://les2scenes.fr/cinema/big-lebowski"], ["18h15 La M\u00e8re de tous les mensonges", "https://les2scenes.fr/cinema/la-mere-de-tous-les-mensonges"], ["20h30 Le Bleu du caftan", "https://les2scenes.fr/cinema/le-bleu-du-caftan"]]}, "juillet": {"3": [["18h Yannick", "https://les2scenes.fr/cinema/yannick"], ["19h30 Caf\u00e9-cin\u00e9 | Juillet 2024", "https://les2scenes.fr/cinema/cafe-cine-juillet-2024"], ["20h30 Yannick", "https://les2scenes.fr/cinema/yannick"]], "8": [["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["14h30 Ratatouille", "https://les2scenes.fr/cinema/ratatouille"], ["18h Le Ch\u00e2teau dans le ciel", "https://les2scenes.fr/cinema/le-chateau-dans-le-ciel"]], "9": [["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["14h30 Mon ami robot", "https://les2scenes.fr/cinema/mon-ami-robot"], ["18h Migration", "https://les2scenes.fr/cinema/migration"]], "10": [["10h30 Un crocodile dans mon jardin", "https://les2scenes.fr/cinema/un-crocodile-dans-mon-jardin"], ["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["14h30 Le Ch\u00e2teau dans le ciel", "https://les2scenes.fr/cinema/le-chateau-dans-le-ciel"], ["18h Courts m\u00e9trages de L'\u00c9t\u00e9 au cin\u00e9ma 2024", "https://les2scenes.fr/cinema/courts-metrages-de-lete-au-cinema-2024"], ["18h Le Proc\u00e8s Goldman", "https://les2scenes.fr/cinema/le-proces-goldman"], ["20h30 Courts m\u00e9trages de L'\u00c9t\u00e9 au cin\u00e9ma 2024", "https://les2scenes.fr/cinema/courts-metrages-de-lete-au-cinema-2024"], ["20h30 Le Proc\u00e8s Goldman", "https://les2scenes.fr/cinema/le-proces-goldman"]], "11": [["10h30 Les Tourouges et les Toubleus", "https://les2scenes.fr/cinema/les-tourouges-et-les-toubleus"], ["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["14h30 Migration", "https://les2scenes.fr/cinema/migration"], ["18h Mon ami robot", "https://les2scenes.fr/cinema/mon-ami-robot"]], "12": [["10h30 Le Petit Chat curieux (Komaneko)", "https://les2scenes.fr/cinema/le-petit-chat-curieux-komaneko"], ["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["18h Ratatouille", "https://les2scenes.fr/cinema/ratatouille"]], "17": [["14h Atelier Tremplin", "https://les2scenes.fr/cinema/atelier-tremplin"], ["14h30 Ratatouille", "https://les2scenes.fr/cinema/ratatouille"], ["18h Le Ch\u00e2teau dans le ciel", "https://les2scenes.fr/cinema/le-chateau-dans-le-ciel"]], "24": [["18h Courts m\u00e9trages de L'\u00c9t\u00e9 au cin\u00e9ma 2024", "https://les2scenes.fr/cinema/courts-metrages-de-lete-au-cinema-2024"], ["18h Le R\u00e8gne animal", "https://les2scenes.fr/cinema/le-regne-animal"], ["20h30 Courts m\u00e9trages de L'\u00c9t\u00e9 au cin\u00e9ma 2024", "https://les2scenes.fr/cinema/courts-metrages-de-lete-au-cinema-2024"], ["20h30 Le R\u00e8gne animal", "https://les2scenes.fr/cinema/le-regne-animal"]]}}
+    next_week_shows = refine_shows_to_next_week_only(next_months_shows)
     driver.quit()
+    return next_week_shows

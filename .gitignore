@@ -5,20 +5,18 @@ venv/
 _build
 .DS_Store
 .vscode
+.idea
 docs/_static/pypi.svg
 .tox
 __pycache__
 
 # Packaging artifacts
-black.egg-info
-black.dist-info
+cinema.egg-info
+cinema.dist-info
 build/
 dist/
 pip-wheel-metadata/
 .eggs
-
-src/_black_version.py
-.idea
 
 .dmypy.json
 *.swp
@@ -27,4 +25,3 @@ src/_black_version.py
 
 cinema/html_out/
 cinema/geckodriver
-
