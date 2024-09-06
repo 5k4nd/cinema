@@ -21,6 +21,22 @@ SERVICE_URL = "http://www.allocine.fr"
 SERVICE_TYPE = "allocine"
 
 
+def _parse_directors(movie_meta: dict) -> str:
+    directors_list = []
+    directors = movie_meta["credits"]
+    if isinstance(directors, dict):
+        # weird case happening sometimes
+        directors = directors.get("nodes", [])
+
+    for person in directors:
+        if person.get("position", {}).get("name") == "DIRECTOR":
+            # firstname = person['person'].get('firstName')
+            # firstname = f"{firstname[0]}." if firstname else ''
+            directors_list.append(person["person"].get("lastName", ""))
+
+    return ','.join(directors_list)
+
+
 def fetch_next_week_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[List[FilmShow]]]:
     """
     Fetch shows from Allociné for one week, from today.
@@ -84,20 +100,14 @@ def fetch_next_week_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[
                     tags = [tag["name"].split("/")[0].split("-")[0].strip() for tag in movie_meta["relatedTags"]]
                     search_engines_query = quote_plus(f"{movie_title} {release_date}")
 
-                    director_name = ""
-                    for person in movie_meta["credits"]:
-                        if person.get("position", {}).get("name") == "DIRECTOR":
-                            # firstname = person['person'].get('firstName')
-                            # firstname = f"{firstname[0]}." if firstname else ''
-                            director_name = person["person"].get("lastName", "")
-
+                    director_names = _parse_directors(movie_meta)
                     poster_metas = movie_meta.get("poster")
                     poster_url = poster_metas.get("url", "") if poster_metas else ""
 
                     if not shows.get(city_name):
                         shows[city_name] = [[] for _ in range(7)]
                     film_show = FilmShow(
-                                label= movie_title + f"<br>({release_date})<br>{director_name}",
+                                label= movie_title + f"<br>({release_date})<br>{director_names}",
                                 cinema= cinema.name,
                                 allocine_url= SERVICE_URL + allocine_movie_url,
                                 yt_url= f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
