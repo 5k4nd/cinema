@@ -173,7 +173,7 @@ def download_poster(film_show: FilmShow) -> Optional[str]:
                 f.write(pic_bytes)
 
             # resize images to vignettes
-            if COMPRESS_PIC and subprocess.call(["convert", local_file_path, "-resize", "120x160", local_file_path]):
+            if COMPRESS_PIC and subprocess.call(["magick", local_file_path, "-resize", "120x160", local_file_path]):
                 print(f"Exception during resizing of {local_file_path}")
 
     local_path = f"../pic/{filename}"
