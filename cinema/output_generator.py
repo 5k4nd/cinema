@@ -1,10 +1,10 @@
 from dataclasses import asdict
 from datetime import date, timedelta
-from os import chmod
+from os import chmod, makedirs
 from pathlib import Path
 from shutil import chown, copyfile, copytree
 from string import Template
-from typing import Tuple, Dict, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from cinema.models import FilmShow
 from cinema.settings import HTML_TEMPLATES_PATH, MAIN_CITY, OUT_GROUP, OUT_PATH, OUT_USER, TEMPLATES
@@ -71,7 +71,7 @@ def _build_tab_other_cities(cinemas: dict) -> str:
         tab += city_template.substitute(
             NormalizedCity=_normalize(city_name),
             City=city_name,
-            Cinemas=", ".join(cinema.name for cinema in city_cinemas),
+            Cinemas=", ".join(cinema.serialize() for cinema in city_cinemas),
         )
     return tab
 
@@ -88,13 +88,15 @@ def _write_static_files_if_needed():
 
 def _write_root_index_file():
     """Write a root index which redirects to the MAIN_CITY index page."""
-    with open(OUT_PATH / "index.html", "w+") as html_file:
+    with open(OUT_PATH / "index.html", "w") as html_file:
         with open(TEMPLATES / "html" / "root_index.html") as template_file:
             root_index_template = Template(template_file.read())
         html_file.write(root_index_template.substitute(mainCity=_normalize(MAIN_CITY)))
 
 
 def generate_html_files(cinemas: Dict[str, List["Cinema"]], one_week_shows: Dict[str, List[List[FilmShow]]]):
+    makedirs(OUT_PATH, exist_ok=True)
+
     for city, current_city_one_week_shows in one_week_shows.items():
         tab_other_cities = _build_tab_other_cities(cinemas)
         _write_html_files_for_city(city, current_city_one_week_shows, tab_other_cities)
