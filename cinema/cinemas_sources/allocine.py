@@ -31,9 +31,8 @@ def _extract_directors(movie_meta: dict) -> str:
 
     for person in directors:
         if person.get("position", {}).get("name") == "DIRECTOR":
-            # firstname = person['person'].get('firstName')
-            # firstname = f"{firstname[0]}." if firstname else ''
-            directors_list.append(person["person"].get("lastName", ""))
+            director_name = person["person"].get("lastName") or person["person"].get("firstName") or ""
+            directors_list.append(director_name)
 
     return ",".join(directors_list)
 
