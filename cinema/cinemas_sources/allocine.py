@@ -125,7 +125,7 @@ def fetch_next_week_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[
                         cinema=cinema.name,
                         allocine_url=SERVICE_URL + allocine_movie_url,
                         yt_url=f"https://www.youtube.com/results?search_query=trailer+{search_engines_query}",
-                        sc_url=f"https://www.senscritique.com/search?query={search_engines_query}",
+                        sc_url=f"https://www.senscritique.com/search?query={search_engines_query}&universe=movie",
                         rotten_tomatos_url=f"https://www.rottentomatoes.com/search?search={search_engines_query}",
                         # langs=', '.join(movie_meta["languages"]),
                         synopsis=movie_meta.get("synopsisFull") or "Synopsis indisponible",
