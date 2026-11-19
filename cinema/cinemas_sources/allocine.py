@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
 SERVICE_URL = "http://www.allocine.fr"
 SERVICE_TYPE = "allocine"
+# Cloudflare (in front of Allociné) blocks the default python-requests User-Agent with a 403
+HTTP_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"}
 
 
 def _extract_directors(movie_meta: dict) -> str:
@@ -92,7 +94,7 @@ def fetch_next_week_shows(cinemas: Dict[str, List["Cinema"]]) -> Dict[str, List[
                 formatted_day = current_day.strftime("%Y-%m-%d")
                 print(f"Fetching {cinema.name} shows for {formatted_day}...")
                 resource = f"{SERVICE_URL}/_/showtimes/theater-{cinema.code}/d-{formatted_day}/"
-                res = requests.get(resource)
+                res = requests.get(resource, headers=HTTP_HEADERS)
                 try:
                     res_json = res.json()
                 except JSONDecodeError:
@@ -163,7 +165,7 @@ def download_poster(film_show: FilmShow) -> Optional[str]:
     filename = f"{url_hash}{file_extension}"
     local_file_path = pic_directory / filename
     if not local_file_path.is_file():  # if the file does not exist already
-        res = requests.get(url)
+        res = requests.get(url, headers=HTTP_HEADERS)
         if not (200 <= res.status_code < 300):
             print(f"Exception downloading {url}.")
         else:
