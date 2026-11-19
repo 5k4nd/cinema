@@ -1,8 +1,10 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/baptabl/cinema?style=flat-square)](https://github.com/baptabl/cinema/commits)  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Fetch theaters shows from http://www.allocine.fr in order to put them on a lightweight web page.
+Fetch theaters shows from various API and scrapping sources in order to put them on a lightweight web page.
 
-Credits for the idea and initial code goes to my friend JC. And design credits goes to Hamlet.
+Friends credits:
+- JC for the original idea and first version of the code
+- Hamlet for the main page original design
 
 This code is licensed under GNU AGPL 3.0: **a modified version used to provide a service, commercial or not, must distribute its complete source code.**
 Illegal uses will be prosecuted under French law.
@@ -14,12 +16,19 @@ Install `imagemagick` (for compressing images, disable this with `COMPRESS_PIC=F
 sudo apt install imagemagick
 ```
 
-then clone this repo and run the script with:
+then clone this repo, install dependencies:
 ```sh
-python3 main.py
+# setup a virtualenv if you want then:
+pip install -r requirements.txt
+pip install -e .
 ```
 
-Your freshly generated `index.html` pages will be located in `html/`.
+then run the script with:
+```sh
+python3 cinema/main.py
+```
+
+Your freshly generated `index.html` pages will be located in `cinema/html_out/`.
 
 That's it!
 
@@ -48,9 +57,9 @@ systemctl list-timers
 
 
 ### Settings
-Edit settings in `settings.py`.
+Edit settings in `cinema/settings.py`.
 
-Edit your theaters preference list in `theaters.csv`. Get theaters codes from the allocine URL,
+Edit your theaters preference list in `cinema/cinemas.csv`. Get theaters codes from the allocine URL,
 ex. http://allocine.fr/seance/salle_gen_csalle=C0076.html where `C0076` is the code.
 
 
